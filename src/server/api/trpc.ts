@@ -15,10 +15,14 @@
  * These allow you to access things when processing a request, like the database, the session, etc.
  */
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
+import { getSession } from "@auth0/nextjs-auth0";
+import type { Session } from "@auth0/nextjs-auth0";
 
 import { prisma } from "~/server/db";
 
-type CreateContextOptions = Record<string, never>;
+type CreateContextOptions = {
+  session: Session | null | undefined;
+};
 
 /**
  * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
@@ -30,9 +34,10 @@ type CreateContextOptions = Record<string, never>;
  *
  * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
-const createInnerTRPCContext = (_opts: CreateContextOptions) => {
+const createInnerTRPCContext = (opts: CreateContextOptions) => {
   return {
     prisma,
+    session: opts.session,
   };
 };
 
@@ -42,8 +47,13 @@ const createInnerTRPCContext = (_opts: CreateContextOptions) => {
  *
  * @see https://trpc.io/docs/context
  */
-export const createTRPCContext = (_opts: CreateNextContextOptions) => {
-  return createInnerTRPCContext({});
+export const createTRPCContext = async (opts: CreateNextContextOptions) => {
+  const { req, res } = opts;
+  const session = await getSession(req, res);
+
+  return createInnerTRPCContext({
+    session,
+  });
 };
 
 /**
@@ -53,7 +63,7 @@ export const createTRPCContext = (_opts: CreateNextContextOptions) => {
  * ZodErrors so that you get typesafety on the frontend if your procedure fails due to validation
  * errors on the backend.
  */
-import { initTRPC } from "@trpc/server";
+import { TRPCError, initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
@@ -93,3 +103,19 @@ export const createTRPCRouter = t.router;
  * are logged in.
  */
 export const publicProcedure = t.procedure;
+
+const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
+  if (!ctx.session || !ctx.session.user) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+    });
+  }
+
+  return next({
+    ctx: {
+      session: { ...ctx.session, user: ctx.session.user },
+    },
+  });
+});
+
+export const privateProcedure = t.procedure.use(enforceUserIsAuthed);
