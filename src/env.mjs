@@ -43,6 +43,8 @@ const processEnv = {
   // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
 };
 
+console.log(processEnv.AUTH0_BASE_URL);
+
 // Don't touch the part below
 // --------------------------
 
