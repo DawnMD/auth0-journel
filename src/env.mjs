@@ -6,16 +6,7 @@ import { z } from "zod";
  */
 const server = z.object({
   DATABASE_URL: z.string().url(),
-  AUTH0_ISSUER_BASE_URL: z.string().min(1),
-  AUTH0_BASE_URL: z.preprocess(
-    (str) => process.env.VERCEL_URL ?? str,
-    // VERCEL_URL doesn't include `https` so it cant be validated as a URL
-    process.env.VERCEL ? z.string().min(1) : z.string().url()
-  ),
   NODE_ENV: z.enum(["development", "test", "production"]),
-  AUTH0_SECRET: z.string().min(1),
-  AUTH0_CLIENT_ID: z.string().min(1),
-  AUTH0_CLIENT_SECRET: z.string().min(1),
 });
 
 /**
@@ -35,15 +26,8 @@ const client = z.object({
 const processEnv = {
   DATABASE_URL: process.env.DATABASE_URL,
   NODE_ENV: process.env.NODE_ENV,
-  AUTH0_BASE_URL: process.env.AUTH0_BASE_URL,
-  AUTH0_ISSUER_BASE_URL: process.env.AUTH0_ISSUER_BASE_URL,
-  AUTH0_SECRET: process.env.AUTH0_SECRET,
-  AUTH0_CLIENT_ID: process.env.AUTH0_CLIENT_ID,
-  AUTH0_CLIENT_SECRET: process.env.AUTH0_CLIENT_SECRET,
   // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
 };
-
-console.log(processEnv.AUTH0_BASE_URL);
 
 // Don't touch the part below
 // --------------------------

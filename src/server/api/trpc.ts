@@ -15,14 +15,10 @@
  * These allow you to access things when processing a request, like the database, the session, etc.
  */
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
-import { getSession } from "@auth0/nextjs-auth0";
-import type { Session } from "@auth0/nextjs-auth0";
 
 import { prisma } from "~/server/db";
 
-type CreateContextOptions = {
-  session: Session | null | undefined;
-};
+type CreateContextOptions = {};
 
 /**
  * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
@@ -37,7 +33,6 @@ type CreateContextOptions = {
 const createInnerTRPCContext = (opts: CreateContextOptions) => {
   return {
     prisma,
-    session: opts.session,
   };
 };
 
@@ -49,11 +44,8 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
  */
 export const createTRPCContext = async (opts: CreateNextContextOptions) => {
   const { req, res } = opts;
-  const session = await getSession(req, res);
 
-  return createInnerTRPCContext({
-    session,
-  });
+  return createInnerTRPCContext({});
 };
 
 /**
@@ -104,18 +96,18 @@ export const createTRPCRouter = t.router;
  */
 export const publicProcedure = t.procedure;
 
-const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
-  if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-    });
-  }
+// const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
+//   if (!ctx.session || !ctx.session.user) {
+//     throw new TRPCError({
+//       code: "UNAUTHORIZED",
+//     });
+//   }
 
-  return next({
-    ctx: {
-      session: { ...ctx.session, user: ctx.session.user },
-    },
-  });
-});
+//   return next({
+//     ctx: {
+//       session: { ...ctx.session, user: ctx.session.user },
+//     },
+//   });
+// });
 
-export const privateProcedure = t.procedure.use(enforceUserIsAuthed);
+// export const privateProcedure = t.procedure.use(enforceUserIsAuthed);
