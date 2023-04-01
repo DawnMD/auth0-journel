@@ -4,6 +4,8 @@ on: [push, pull_request]
 
 env:
   DATABASE_URL: "https://fake.com"
+  CLERK_SECRET_KEY: "asdsadsadasdsadasd"
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "asdsadsadasdsadasd"
 
 jobs:
   build:
@@ -21,6 +23,3 @@ jobs:
 
       - name: Lint
         run: npm run lint
-
-      - name: Print Environment Variable
-        run: echo $MY_ENV_VAR
