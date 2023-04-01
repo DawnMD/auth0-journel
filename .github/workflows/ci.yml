@@ -1,33 +1,26 @@
-name: Lint and Type Check with PNPM Cache
+name: CI
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+on: [push, pull_request]
+
+env:
+  DATABASE_URL: "https://fake.com"
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Cache PNPM packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-
       - name: Install Dependencies
-        run: pnpm install
+        run: npm install
 
-      - name: Linting
-        run: pnpm run lint
+      - name: Typecheck
+        run: npm run typecheck
 
-      - name: Type Checking
-        run: pnpm run type-check
+      - name: Lint
+        run: npm run lint
+
+      - name: Print Environment Variable
+        run: echo $MY_ENV_VAR
